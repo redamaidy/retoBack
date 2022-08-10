@@ -1,7 +1,13 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const server = require('http').Server(app)
-const io = require('socket.io')(server);
+app.use(cors())
+const io = require('socket.io')(server,{
+    cors:{
+        origins:['http://localhost:4200']
+    }
+});
 var LAST_HUM = 50;
 var LAST_TEMP = 17.5;
 
@@ -10,6 +16,20 @@ const HUM_LIMITS = [30, 70];
 
 io.on('connection',(socket)=>{
     console.log("socket connected", socket.id);
+    setInterval(async()=>{
+    socket.emit('iot/sensors', {
+        data:[
+        {
+            sensor: "HUM",
+            value: generateData("HUM")
+        },
+        {
+            sensor: "TEMP",
+            value: generateData("TEMP")
+    }]
+    });
+    },5000);
+    
 })
 
 server.listen(5000,()=>{
