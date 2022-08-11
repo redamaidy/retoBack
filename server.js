@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const server = require('http').Server(app)
+var request = require('request');
 app.use(cors())
 const io = require('socket.io')(server,{
     cors:{
@@ -17,6 +18,26 @@ const HUM_LIMITS = [30, 70];
 io.on('connection',(socket)=>{
     console.log("socket connected", socket.id);
     setInterval(async()=>{
+request.post(
+    'http://localhost:4000/api/datos',
+    { json: { sensor:"TEMP",value: generateData("TEMP"),date:new Date().toLocaleString()} },
+    function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            console.log(body)
+        }
+    }
+);
+request.post(
+    'http://localhost:4000/api/datos',
+    { json: { sensor:"HUM",value: generateData("HUM"),date:new Date().toLocaleString()} },
+    function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            console.log(body)
+        }
+    }
+);
+    },900000);
+    setInterval(async()=>{
     socket.emit('iot/sensors', {
         data:[
         {
@@ -29,11 +50,10 @@ io.on('connection',(socket)=>{
     }]
     });
     },5000);
-    
 })
 
-server.listen(5000,()=>{
-    console.log('Socket listo en el puerto 5000');
+server.listen(5001,()=>{
+    console.log('Socket listo en el puerto 5001');
 })
 
 
